@@ -1,0 +1,14 @@
+node_modules/
+mobile/node_modules/
+mobile/backend/vendor/
+mobile/.expo/
+mobile/dist/
+mobile/build/
+*.log
+.env
+mobile/backend/.env
+mobile/backend/storage/logs/
+mobile/backend/storage/framework/cache/
+mobile/backend/storage/framework/sessions/
+mobile/backend/storage/framework/views/
+mobile/backend/bootstrap/cache/

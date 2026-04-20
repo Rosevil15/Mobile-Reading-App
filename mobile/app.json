@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "MobileReadingApp",
+    "slug": "mobile-reading-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.mobilereadingapp",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app needs microphone access to record your reading for pronunciation analysis."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.example.mobilereadingapp",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow MobileReadingApp to access your microphone for reading analysis."
+        }
+      ]
+    ]
+  }
+}
