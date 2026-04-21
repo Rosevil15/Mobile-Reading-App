@@ -3,11 +3,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { LoginScreen } from '../screens/auth/LoginScreen'
 import { RegisterScreen } from '../screens/auth/RegisterScreen'
 import type { AuthStackParamList } from '../screens/auth/types'
+import type { Session } from '../types'
 
 const Stack = createNativeStackNavigator<AuthStackParamList>()
 
 interface AuthNavigatorProps {
-  onAuthSuccess: () => void
+  onAuthSuccess: (session: Session) => void
 }
 
 /**

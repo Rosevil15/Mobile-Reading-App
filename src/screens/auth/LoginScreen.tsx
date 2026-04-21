@@ -12,9 +12,10 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { AuthService } from '../../services/auth.service'
 import type { AuthStackParamList } from './types'
+import type { Session } from '../../types'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'> & {
-  onAuthSuccess: () => void
+  onAuthSuccess: (session: Session) => void
 }
 
 /**
@@ -38,8 +39,8 @@ export function LoginScreen({ navigation, onAuthSuccess }: Props) {
     setLoading(true)
 
     try {
-      await AuthService.login(email.trim(), password)
-      onAuthSuccess()
+      const session = await AuthService.login(email.trim(), password)
+      onAuthSuccess(session)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.')
     } finally {

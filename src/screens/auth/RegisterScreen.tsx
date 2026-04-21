@@ -11,11 +11,11 @@ import {
 } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { AuthService } from '../../services/auth.service'
-import type { Role } from '../../types'
+import type { Role, Session } from '../../types'
 import type { AuthStackParamList } from './types'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'> & {
-  onAuthSuccess: () => void
+  onAuthSuccess: (session: Session) => void
 }
 
 const ROLES: { label: string; value: Role }[] = [
@@ -45,8 +45,8 @@ export function RegisterScreen({ navigation, onAuthSuccess }: Props) {
     setLoading(true)
 
     try {
-      await AuthService.register(email.trim(), password, role)
-      onAuthSuccess()
+      const session = await AuthService.register(email.trim(), password, role)
+      onAuthSuccess(session)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.')
     } finally {

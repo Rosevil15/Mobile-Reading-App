@@ -24,9 +24,13 @@ export function RootNavigator() {
   }, [])
 
   /** Called by auth screens after a successful login or registration. */
-  const handleAuthSuccess = useCallback(async () => {
-    const s = await AuthService.getSession()
-    setSession(s)
+  const handleAuthSuccess = useCallback(async (newSession?: Session) => {
+    if (newSession) {
+      setSession(newSession)
+    } else {
+      const s = await AuthService.getSession()
+      setSession(s)
+    }
   }, [])
 
   /** Called by authenticated screens when the user logs out. */
