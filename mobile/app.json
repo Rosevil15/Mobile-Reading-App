@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "MobileReadingApp",
+    "slug": "mobile-reading-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.mobilereadingapp",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app needs microphone access to record your reading for pronunciation analysis."
+      }
+    },
+    "android": {
+      "package": "com.example.mobilereadingapp",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow MobileReadingApp to access your microphone for reading analysis."
+        }
+      ]
+    ]
+  }
+}
