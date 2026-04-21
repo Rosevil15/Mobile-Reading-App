@@ -1,62 +1,41 @@
-import { Audio } from 'expo-av'
+import { Platform } from 'react-native'
 
 /**
  * RecorderService wraps Expo AV to manage microphone permission,
  * recording lifecycle, and local file persistence.
+ * On web, recording is not supported.
  *
  * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5
  */
 export class RecorderService {
-  private recording: Audio.Recording | null = null
+  private recording: any = null
 
-  /**
-   * Request microphone permission from the device.
-   * Returns true if permission is granted, false otherwise.
-   * Requirements: 4.4, 4.5
-   */
   async requestPermission(): Promise<boolean> {
+    if (Platform.OS === 'web') return false
+    const { Audio } = require('expo-av')
     const { status } = await Audio.requestPermissionsAsync()
     return status === 'granted'
   }
 
-  /**
-   * Begin capturing audio from the device microphone.
-   * Uses high-quality .m4a format to minimize storage usage.
-   * Requirements: 4.1, 4.3
-   */
   async startRecording(): Promise<void> {
+    if (Platform.OS === 'web') throw new Error('Recording is not supported on web.')
+    const { Audio } = require('expo-av')
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
     })
-
     const { recording } = await Audio.Recording.createAsync(
       Audio.RecordingOptionsPresets.HIGH_QUALITY
     )
-
     this.recording = recording
   }
 
-  /**
-   * Stop audio capture, save the recording in .m4a format,
-   * and return the local file URI.
-   * Throws if recording was never started.
-   * Requirements: 4.2, 4.3
-   */
   async stopRecording(): Promise<string> {
-    if (!this.recording) {
-      throw new Error('No active recording to stop')
-    }
-
+    if (!this.recording) throw new Error('No active recording to stop')
     await this.recording.stopAndUnloadAsync()
-
     const uri = this.recording.getURI()
     this.recording = null
-
-    if (!uri) {
-      throw new Error('Recording URI is unavailable after stopping')
-    }
-
+    if (!uri) throw new Error('Recording URI is unavailable after stopping')
     return uri
   }
 }
