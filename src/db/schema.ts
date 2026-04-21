@@ -1,34 +1,30 @@
 import { Platform } from 'react-native'
+import * as SQLite from 'expo-sqlite'
 
 // Requirements: 7.2
 const DATABASE_NAME = 'reading_app.db'
-
-// Web doesn't support native SQLite — use a no-op stub so the app loads.
-// On web, all data flows through Supabase directly.
-const webStub = {
-  execSync: () => {},
-  runSync: () => ({ lastInsertRowId: 0, changes: 0 }),
-  getAllSync: () => [],
-  getFirstSync: () => null,
-} as any
 
 let db: any = null
 
 /**
  * Returns the initialized SQLite database instance.
- * On web, returns a no-op stub (data is handled by Supabase).
+ * On web, returns a no-op stub (data is handled by Supabase directly).
  * Requirements: 7.2
  */
 export function getDatabase(): any {
   if (db) return db
 
   if (Platform.OS === 'web') {
-    db = webStub
+    // On web, SQLite is not available — return a no-op stub
+    db = {
+      execSync: () => {},
+      runSync: () => ({ lastInsertRowId: 0, changes: 0 }),
+      getAllSync: () => [],
+      getFirstSync: () => null,
+    }
     return db
   }
 
-  // Native only
-  const SQLite = require('expo-sqlite')
   db = SQLite.openDatabaseSync(DATABASE_NAME)
 
   db.execSync(`
