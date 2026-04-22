@@ -7,6 +7,7 @@ import {
   useWindowDimensions,
   Modal,
   SafeAreaView,
+  Platform,
 } from 'react-native'
 import { AuthService } from '../services/auth.service'
 
@@ -44,7 +45,7 @@ export function AppLayout({
   onLogout,
 }: AppLayoutProps) {
   const { width } = useWindowDimensions()
-  const isWide = width >= 768
+  const isWide = Platform.OS === 'web' ? width >= 600 : false
   const [menuOpen, setMenuOpen] = useState(false)
   const items = role === 'teacher' ? TEACHER_ITEMS : STUDENT_ITEMS
   const headerBg = role === 'teacher' ? '#1e3a5f' : '#2563eb'
