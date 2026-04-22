@@ -1,52 +1,66 @@
-import React from 'react'
-import { useWindowDimensions } from 'react-native'
-import { createDrawerNavigator } from '@react-navigation/drawer'
+import React, { useState } from 'react'
 import { HomeScreen } from '../screens/student/HomeScreen'
 import { ProfileScreen } from '../screens/student/ProfileScreen'
 import { ReadingScreen } from '../screens/student/ReadingScreen'
-import type { StudentStackParamList } from '../screens/student/HomeScreen'
-import { Sidebar } from '../components/Sidebar'
+import type { ReadingMaterial } from '../types'
 
-const Drawer = createDrawerNavigator<StudentStackParamList>()
+type Screen = 'StudentHome' | 'Profile' | 'Reading'
 
 interface StudentNavigatorProps {
   onLogout?: () => void
 }
 
 export function StudentNavigator({ onLogout }: StudentNavigatorProps) {
-  const { width } = useWindowDimensions()
-  const isWide = width >= 768
+  const [screen, setScreen] = useState<Screen>('StudentHome')
+  const [selectedMaterial, setSelectedMaterial] = useState<ReadingMaterial | null>(null)
+
+  function navigate(target: string, params?: any) {
+    if (target === 'Reading' && params?.material) {
+      setSelectedMaterial(params.material)
+    }
+    setScreen(target as Screen)
+  }
+
+  function goBack() {
+    setScreen('StudentHome')
+  }
+
+  const titles: Record<Screen, string> = {
+    StudentHome: 'Reading Materials',
+    Profile: 'My Progress',
+    Reading: selectedMaterial?.title ?? 'Reading',
+  }
+
+  if (screen === 'Reading' && selectedMaterial) {
+    return (
+      <ReadingScreen
+        material={selectedMaterial}
+        activeScreen={screen}
+        title={titles[screen]}
+        onNavigate={navigate}
+        onLogout={onLogout ?? (() => {})}
+        onBack={goBack}
+      />
+    )
+  }
+
+  if (screen === 'Profile') {
+    return (
+      <ProfileScreen
+        activeScreen={screen}
+        title={titles[screen]}
+        onNavigate={navigate}
+        onLogout={onLogout ?? (() => {})}
+      />
+    )
+  }
 
   return (
-    <Drawer.Navigator
-      drawerContent={(props) => (
-        <Sidebar {...props} role="student" onLogout={onLogout ?? (() => {})} />
-      )}
-      screenOptions={{
-        drawerType: isWide ? 'permanent' : 'front',
-        drawerStyle: { width: 220 },
-        headerStyle: { backgroundColor: '#2563eb' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-        // Hide the default header right — sidebar handles navigation
-        headerRight: undefined,
-      }}
-    >
-      <Drawer.Screen
-        name="StudentHome"
-        component={HomeScreen}
-        options={{ title: 'Reading Materials' }}
-      />
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ title: 'My Progress' }}
-      />
-      <Drawer.Screen
-        name="Reading"
-        component={ReadingScreen}
-        options={{ title: 'Reading', drawerItemStyle: { display: 'none' } }}
-      />
-    </Drawer.Navigator>
+    <HomeScreen
+      activeScreen={screen}
+      title={titles[screen]}
+      onNavigate={navigate}
+      onLogout={onLogout ?? (() => {})}
+    />
   )
 }

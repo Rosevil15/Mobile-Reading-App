@@ -1,50 +1,67 @@
-import React from 'react'
-import { useWindowDimensions } from 'react-native'
-import { createDrawerNavigator } from '@react-navigation/drawer'
+import React, { useState } from 'react'
 import { DashboardScreen } from '../screens/teacher/DashboardScreen'
 import { StudentDetailScreen } from '../screens/teacher/StudentDetailScreen'
 import { AddMaterialScreen } from '../screens/teacher/AddMaterialScreen'
-import type { TeacherStackParamList } from '../screens/teacher/DashboardScreen'
-import { Sidebar } from '../components/Sidebar'
 
-const Drawer = createDrawerNavigator<TeacherStackParamList>()
+type Screen = 'Dashboard' | 'StudentDetail' | 'AddMaterial'
 
 interface TeacherNavigatorProps {
   onLogout?: () => void
 }
 
 export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
-  const { width } = useWindowDimensions()
-  const isWide = width >= 768
+  const [screen, setScreen] = useState<Screen>('Dashboard')
+  const [selectedStudent, setSelectedStudent] = useState<{ id: string; name: string } | null>(null)
+
+  function navigate(target: string, params?: any) {
+    if (target === 'StudentDetail' && params) {
+      setSelectedStudent({ id: params.studentId, name: params.studentName })
+    }
+    setScreen(target as Screen)
+  }
+
+  function goBack() {
+    setScreen('Dashboard')
+  }
+
+  const titles: Record<Screen, string> = {
+    Dashboard: 'Teacher Dashboard',
+    StudentDetail: selectedStudent?.name ?? 'Student Detail',
+    AddMaterial: 'Add Reading Material',
+  }
+
+  if (screen === 'StudentDetail' && selectedStudent) {
+    return (
+      <StudentDetailScreen
+        studentId={selectedStudent.id}
+        studentName={selectedStudent.name}
+        activeScreen={screen}
+        title={titles[screen]}
+        onNavigate={navigate}
+        onLogout={onLogout ?? (() => {})}
+        onBack={goBack}
+      />
+    )
+  }
+
+  if (screen === 'AddMaterial') {
+    return (
+      <AddMaterialScreen
+        activeScreen={screen}
+        title={titles[screen]}
+        onNavigate={navigate}
+        onLogout={onLogout ?? (() => {})}
+        onBack={goBack}
+      />
+    )
+  }
 
   return (
-    <Drawer.Navigator
-      drawerContent={(props) => (
-        <Sidebar {...props} role="teacher" onLogout={onLogout ?? (() => {})} />
-      )}
-      screenOptions={{
-        drawerType: isWide ? 'permanent' : 'front',
-        drawerStyle: { width: 220 },
-        headerStyle: { backgroundColor: '#1e3a5f' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-      }}
-    >
-      <Drawer.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{ title: 'Teacher Dashboard' }}
-      />
-      <Drawer.Screen
-        name="AddMaterial"
-        component={AddMaterialScreen}
-        options={{ title: 'Add Reading Material' }}
-      />
-      <Drawer.Screen
-        name="StudentDetail"
-        component={StudentDetailScreen}
-        options={{ title: 'Student Detail', drawerItemStyle: { display: 'none' } }}
-      />
-    </Drawer.Navigator>
+    <DashboardScreen
+      activeScreen={screen}
+      title={titles[screen]}
+      onNavigate={navigate}
+      onLogout={onLogout ?? (() => {})}
+    />
   )
 }

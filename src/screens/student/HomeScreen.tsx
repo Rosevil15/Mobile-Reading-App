@@ -8,11 +8,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native'
-import type { DrawerScreenProps } from '@react-navigation/drawer'
-import { ReadingMaterialRepo } from '../../repositories/reading-material.repo'
 import { supabase } from '../../services/supabase'
+import { ReadingMaterialRepo } from '../../repositories/reading-material.repo'
 import type { ReadingMaterial } from '../../types'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
+import { AppLayout } from '../../components/AppLayout'
 
 export type StudentStackParamList = {
   StudentHome: undefined
@@ -20,16 +20,16 @@ export type StudentStackParamList = {
   Profile: undefined
 }
 
-type Props = DrawerScreenProps<StudentStackParamList, 'StudentHome'>
+interface Props {
+  activeScreen: string
+  title: string
+  onNavigate: (screen: string, params?: any) => void
+  onLogout: () => void
+}
 
 const repo = new ReadingMaterialRepo()
 
-/**
- * Home screen for students — lists available reading materials.
- * Shows an offline banner when there is no network connection.
- * Requirements: 2.1, 2.3, 7.1, 7.4
- */
-export function HomeScreen({ navigation }: Props) {
+export function HomeScreen({ activeScreen, title, onNavigate, onLogout }: Props) {
   const [materials, setMaterials] = useState<ReadingMaterial[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -37,9 +37,7 @@ export function HomeScreen({ navigation }: Props) {
     setLoading(true)
     try {
       let data: ReadingMaterial[] = []
-
       if (Platform.OS === 'web') {
-        // On web, fetch directly from Supabase
         const { data: rows } = await supabase
           .from('reading_materials')
           .select('id, title, content, difficulty_level')
@@ -53,30 +51,24 @@ export function HomeScreen({ navigation }: Props) {
       } else {
         data = await repo.getAll()
       }
-
       setMaterials(data)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    fetchMaterials()
-  }, [fetchMaterials])
+  useEffect(() => { fetchMaterials() }, [fetchMaterials])
 
   const difficultyColor: Record<string, string> = {
-    easy: '#16a34a',
-    medium: '#d97706',
-    hard: '#dc2626',
+    easy: '#16a34a', medium: '#d97706', hard: '#dc2626',
   }
 
   return (
-    <View style={styles.container}>
+    <AppLayout role="student" activeScreen={activeScreen} title={title} onNavigate={onNavigate} onLogout={onLogout}>
       <ConnectivityIndicator />
-
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" accessibilityLabel="Loading materials" />
+          <ActivityIndicator size="large" color="#2563eb" />
         </View>
       ) : materials.length === 0 ? (
         <View style={styles.center}>
@@ -90,44 +82,30 @@ export function HomeScreen({ navigation }: Props) {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => navigation.navigate('Reading', { material: item })}
+              onPress={() => onNavigate('Reading', { material: item })}
               accessibilityRole="button"
-              accessibilityLabel={`${item.title}, difficulty: ${item.difficultyLevel}`}
             >
               <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text
-                style={[
-                  styles.cardDifficulty,
-                  { color: difficultyColor[item.difficultyLevel] ?? '#555' },
-                ]}
-              >
+              <Text style={[styles.cardDifficulty, { color: difficultyColor[item.difficultyLevel] ?? '#555' }]}>
                 {item.difficultyLevel.charAt(0).toUpperCase() + item.difficultyLevel.slice(1)}
               </Text>
             </TouchableOpacity>
           )}
         />
       )}
-    </View>
+    </AppLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 16, color: '#6b7280' },
   list: { padding: 16, gap: 12 },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 10, padding: 16,
+    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#111827', flex: 1, marginRight: 8 },
   cardDifficulty: { fontSize: 13, fontWeight: '500' },
