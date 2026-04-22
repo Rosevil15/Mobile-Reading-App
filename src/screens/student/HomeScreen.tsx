@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ReadingMaterialRepo } from '../../repositories/reading-material.repo'
+import { supabase } from '../../services/supabase'
 import type { ReadingMaterial } from '../../types'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 
@@ -50,7 +52,24 @@ export function HomeScreen({ navigation }: Props) {
   const fetchMaterials = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await repo.getAll()
+      let data: ReadingMaterial[] = []
+
+      if (Platform.OS === 'web') {
+        // On web, fetch directly from Supabase
+        const { data: rows } = await supabase
+          .from('reading_materials')
+          .select('id, title, content, difficulty_level')
+          .order('created_at', { ascending: true })
+        data = (rows ?? []).map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          content: r.content,
+          difficultyLevel: r.difficulty_level,
+        }))
+      } else {
+        data = await repo.getAll()
+      }
+
       setMaterials(data)
     } finally {
       setLoading(false)
