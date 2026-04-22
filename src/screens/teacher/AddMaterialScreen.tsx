@@ -11,11 +11,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import { supabase } from '../../services/supabase'
 import type { TeacherStackParamList } from './DashboardScreen'
 
-type Props = NativeStackScreenProps<TeacherStackParamList, 'AddMaterial'>
+type Props = DrawerScreenProps<TeacherStackParamList, 'AddMaterial'>
 
 type Difficulty = 'easy' | 'medium' | 'hard'
 

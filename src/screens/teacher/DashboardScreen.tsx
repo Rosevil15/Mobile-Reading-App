@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import { supabase } from '../../services/supabase'
 import { AuthService } from '../../services/auth.service'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
@@ -19,7 +19,7 @@ export type TeacherStackParamList = {
   AddMaterial: undefined
 }
 
-type Props = NativeStackScreenProps<TeacherStackParamList, 'Dashboard'>
+type Props = DrawerScreenProps<TeacherStackParamList, 'Dashboard'>
 
 interface Student {
   id: string

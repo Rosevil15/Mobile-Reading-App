@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import { ReadingMaterialRepo } from '../../repositories/reading-material.repo'
 import { supabase } from '../../services/supabase'
 import type { ReadingMaterial } from '../../types'
@@ -20,7 +20,7 @@ export type StudentStackParamList = {
   Profile: undefined
 }
 
-type Props = NativeStackScreenProps<StudentStackParamList, 'StudentHome'>
+type Props = DrawerScreenProps<StudentStackParamList, 'StudentHome'>
 
 const repo = new ReadingMaterialRepo()
 
@@ -32,22 +32,6 @@ const repo = new ReadingMaterialRepo()
 export function HomeScreen({ navigation }: Props) {
   const [materials, setMaterials] = useState<ReadingMaterial[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Add Profile button to header
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}
-          accessibilityRole="button"
-          accessibilityLabel="View profile"
-          style={{ marginRight: 4 }}
-        >
-          <Text style={{ color: '#2563eb', fontSize: 15, fontWeight: '600' }}>Profile</Text>
-        </TouchableOpacity>
-      ),
-    })
-  }, [navigation])
 
   const fetchMaterials = useCallback(async () => {
     setLoading(true)

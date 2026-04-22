@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import type { StudentStackParamList } from './HomeScreen'
 import { ttsService } from '../../services/tts.service'
 import { recorderService } from '../../services/recorder.service'
@@ -16,7 +16,7 @@ import { RecordingRepo } from '../../repositories/recording.repo'
 import { AuthService } from '../../services/auth.service'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 
-type Props = NativeStackScreenProps<StudentStackParamList, 'Reading'>
+type Props = DrawerScreenProps<StudentStackParamList, 'Reading'>
 
 const progressRepo = new ProgressRepo()
 const recordingRepo = new RecordingRepo()

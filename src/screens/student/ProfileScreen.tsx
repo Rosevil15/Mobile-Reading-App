@@ -6,14 +6,14 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import { AuthService } from '../../services/auth.service'
 import { ProgressRepo } from '../../repositories/progress.repo'
 import type { ProgressRecord } from '../../types'
 import type { StudentStackParamList } from './HomeScreen'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 
-type Props = NativeStackScreenProps<StudentStackParamList, 'Profile'>
+type Props = DrawerScreenProps<StudentStackParamList, 'Profile'>
 
 const repo = new ProgressRepo()
 

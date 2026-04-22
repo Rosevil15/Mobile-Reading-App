@@ -7,13 +7,13 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { DrawerScreenProps } from '@react-navigation/drawer'
 import { Audio } from 'expo-av'
 import { supabase } from '../../services/supabase'
 import type { TeacherStackParamList } from './DashboardScreen'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 
-type Props = NativeStackScreenProps<TeacherStackParamList, 'StudentDetail'>
+type Props = DrawerScreenProps<TeacherStackParamList, 'StudentDetail'>
 
 interface ProgressRow {
   id: string

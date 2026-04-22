@@ -1,4 +1,5 @@
 import React from 'react'
+import { useWindowDimensions } from 'react-native'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { DashboardScreen } from '../screens/teacher/DashboardScreen'
 import { StudentDetailScreen } from '../screens/teacher/StudentDetailScreen'
@@ -13,13 +14,16 @@ interface TeacherNavigatorProps {
 }
 
 export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
+  const { width } = useWindowDimensions()
+  const isWide = width >= 768
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
         <Sidebar {...props} role="teacher" onLogout={onLogout ?? (() => {})} />
       )}
       screenOptions={{
-        drawerType: 'permanent',
+        drawerType: isWide ? 'permanent' : 'front',
         drawerStyle: { width: 220 },
         headerStyle: { backgroundColor: '#1e3a5f' },
         headerTintColor: '#fff',
@@ -29,12 +33,12 @@ export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
       <Drawer.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ title: 'Teacher Dashboard', drawerLabel: 'Dashboard' }}
+        options={{ title: 'Teacher Dashboard' }}
       />
       <Drawer.Screen
         name="AddMaterial"
         component={AddMaterialScreen}
-        options={{ title: 'Add Reading Material', drawerLabel: 'Add Material' }}
+        options={{ title: 'Add Reading Material' }}
       />
       <Drawer.Screen
         name="StudentDetail"
