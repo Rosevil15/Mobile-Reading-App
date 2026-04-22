@@ -1,47 +1,46 @@
 import React from 'react'
-import { TouchableOpacity, Text, Alert } from 'react-native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { createDrawerNavigator } from '@react-navigation/drawer'
 import { HomeScreen } from '../screens/student/HomeScreen'
-import { ReadingScreen } from '../screens/student/ReadingScreen'
 import { ProfileScreen } from '../screens/student/ProfileScreen'
+import { ReadingScreen } from '../screens/student/ReadingScreen'
 import type { StudentStackParamList } from '../screens/student/HomeScreen'
-import { AuthService } from '../services/auth.service'
+import { Sidebar } from '../components/Sidebar'
 
-const Stack = createNativeStackNavigator<StudentStackParamList>()
+const Drawer = createDrawerNavigator<StudentStackParamList>()
 
 interface StudentNavigatorProps {
   onLogout?: () => void
 }
 
 export function StudentNavigator({ onLogout }: StudentNavigatorProps) {
-  async function handleLogout() {
-    await AuthService.logout()
-    onLogout?.()
-  }
-
-  const LogoutButton = () => (
-    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 12 }}>
-      <Text style={{ color: '#dc2626', fontSize: 14, fontWeight: '600' }}>Logout</Text>
-    </TouchableOpacity>
-  )
-
   return (
-    <Stack.Navigator>
-      <Stack.Screen
+    <Drawer.Navigator
+      drawerContent={(props) => (
+        <Sidebar {...props} role="student" onLogout={onLogout ?? (() => {})} />
+      )}
+      screenOptions={{
+        drawerType: 'permanent',
+        drawerStyle: { width: 220 },
+        headerStyle: { backgroundColor: '#2563eb' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+      }}
+    >
+      <Drawer.Screen
         name="StudentHome"
         component={HomeScreen}
-        options={{ title: 'Reading Materials', headerRight: () => <LogoutButton /> }}
+        options={{ title: 'Reading Materials', drawerLabel: 'Reading Materials' }}
       />
-      <Stack.Screen
-        name="Reading"
-        component={ReadingScreen}
-        options={({ route }) => ({ title: route.params.material.title })}
-      />
-      <Stack.Screen
+      <Drawer.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: 'My Progress' }}
+        options={{ title: 'My Progress', drawerLabel: 'My Progress' }}
       />
-    </Stack.Navigator>
+      <Drawer.Screen
+        name="Reading"
+        component={ReadingScreen}
+        options={{ title: 'Reading', drawerItemStyle: { display: 'none' } }}
+      />
+    </Drawer.Navigator>
   )
 }
