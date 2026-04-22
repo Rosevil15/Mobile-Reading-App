@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { HomeScreen } from '../screens/student/HomeScreen'
 import { ProfileScreen } from '../screens/student/ProfileScreen'
 import { ReadingScreen } from '../screens/student/ReadingScreen'
@@ -14,16 +14,16 @@ export function StudentNavigator({ onLogout }: StudentNavigatorProps) {
   const [screen, setScreen] = useState<Screen>('StudentHome')
   const [selectedMaterial, setSelectedMaterial] = useState<ReadingMaterial | null>(null)
 
-  function navigate(target: string, params?: any) {
+  const navigate = useCallback((target: string, params?: any) => {
     if (target === 'Reading' && params?.material) {
       setSelectedMaterial(params.material)
     }
     setScreen(target as Screen)
-  }
+  }, [])
 
-  function goBack() {
+  const goBack = useCallback(() => {
     setScreen('StudentHome')
-  }
+  }, [])
 
   const titles: Record<Screen, string> = {
     StudentHome: 'Reading Materials',
