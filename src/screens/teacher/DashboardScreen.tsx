@@ -16,6 +16,7 @@ import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 export type TeacherStackParamList = {
   Dashboard: undefined
   StudentDetail: { studentId: string; studentName: string }
+  AddMaterial: undefined
 }
 
 type Props = NativeStackScreenProps<TeacherStackParamList, 'Dashboard'>
