@@ -46,18 +46,46 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
       const session = await AuthService.getSession()
       if (!session) return
       setTeacherId(session.userId)
-      const { data } = await supabase
+
+      // Fetch assignments
+      const { data: aData, error: aErr } = await supabase
         .from('assignments')
-        .select('id, title, deadline, required_score, reading_materials(title), assignment_students(id, completed)')
+        .select('id, title, deadline, required_score, material_id')
         .eq('teacher_id', session.userId)
         .order('deadline', { ascending: true })
-      setAssignments((data ?? []).map((a: any) => ({
-        id: a.id, title: a.title, deadline: a.deadline,
-        required_score: a.required_score,
-        material_title: a.reading_materials?.title ?? '—',
-        total_students: a.assignment_students?.length ?? 0,
-        completed_count: (a.assignment_students ?? []).filter((s: any) => s.completed).length,
-      })))
+
+      if (aErr) { setLoading(false); return }
+
+      const assignmentList = aData ?? []
+      if (assignmentList.length === 0) { setAssignments([]); setLoading(false); return }
+
+      // Fetch material titles
+      const materialIds = [...new Set(assignmentList.map((a: any) => a.material_id))]
+      const { data: mData } = await supabase
+        .from('reading_materials')
+        .select('id, title')
+        .in('id', materialIds)
+      const materialMap: Record<string, string> = {}
+      ;(mData ?? []).forEach((m: any) => { materialMap[m.id] = m.title })
+
+      // Fetch student completion counts
+      const assignmentIds = assignmentList.map((a: any) => a.id)
+      const { data: sData } = await supabase
+        .from('assignment_students')
+        .select('assignment_id, completed')
+        .in('assignment_id', assignmentIds)
+
+      const mapped: Assignment[] = assignmentList.map((a: any) => {
+        const students = (sData ?? []).filter((s: any) => s.assignment_id === a.id)
+        return {
+          id: a.id, title: a.title, deadline: a.deadline,
+          required_score: a.required_score,
+          material_title: materialMap[a.material_id] ?? '—',
+          total_students: students.length,
+          completed_count: students.filter((s: any) => s.completed).length,
+        }
+      })
+      setAssignments(mapped)
     } catch { } finally { setLoading(false) }
   }, [])
 
