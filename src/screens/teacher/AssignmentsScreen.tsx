@@ -120,7 +120,7 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
           </TouchableOpacity>
 
           <Text style={styles.label}>Assignment Title</Text>
-          <TextInput style={styles.input} placeholder="e.g. Week 1 Reading" value={assignTitle} onChangeText={setAssignTitle} editable={!saving} />
+          <TextInput style={styles.input} placeholder="e.g. Week 1 Reading" value={assignTitle} onChangeText={setAssignTitle} editable={!saving} returnKeyType="next" blurOnSubmit={false} onSubmitEditing={() => {}} />
 
           <Text style={styles.label}>Reading Material</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
@@ -132,10 +132,10 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
           </ScrollView>
 
           <Text style={styles.label}>Deadline (YYYY-MM-DD)</Text>
-          <TextInput style={styles.input} placeholder="2026-05-30" value={deadline} onChangeText={setDeadline} editable={!saving} />
+          <TextInput style={styles.input} placeholder="2026-05-30" value={deadline} onChangeText={setDeadline} editable={!saving} returnKeyType="next" blurOnSubmit={false} />
 
           <Text style={styles.label}>Required Score (%)</Text>
-          <TextInput style={styles.input} placeholder="70" value={requiredScore} onChangeText={setRequiredScore} keyboardType="numeric" editable={!saving} />
+          <TextInput style={styles.input} placeholder="70" value={requiredScore} onChangeText={setRequiredScore} keyboardType="numeric" editable={!saving} returnKeyType="done" blurOnSubmit={true} />
 
           <View style={styles.studentHeader}>
             <Text style={styles.label}>Assign To Students</Text>
@@ -155,7 +155,7 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
             ))
           )}
 
-          <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleCreate} disabled={saving}>
+          <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={(e: any) => { e?.preventDefault?.(); handleCreate() }} disabled={saving}>
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Create Assignment</Text>}
           </TouchableOpacity>
         </ScrollView>
