@@ -20,6 +20,7 @@ const STUDENT_ITEMS: NavItem[] = [
 const TEACHER_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: '🏠', key: 'Dashboard' },
   { label: 'Assignments', icon: '📋', key: 'Assignments' },
+  { label: 'Quiz Builder', icon: '📝', key: 'QuizBuilder' },
   { label: 'Analytics', icon: '📊', key: 'Analytics' },
   { label: 'Leaderboard', icon: '🏆', key: 'Leaderboard' },
   { label: 'Add Material', icon: '➕', key: 'AddMaterial' },

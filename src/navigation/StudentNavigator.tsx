@@ -4,13 +4,12 @@ import { ProfileScreen } from '../screens/student/ProfileScreen'
 import { ReadingScreen } from '../screens/student/ReadingScreen'
 import { RewardsScreen } from '../screens/student/RewardsScreen'
 import { StudentAssignmentsScreen } from '../screens/student/AssignmentsScreen'
+import { QuizScreen } from '../screens/student/QuizScreen'
 import type { ReadingMaterial } from '../types'
 
-type Screen = 'StudentHome' | 'Profile' | 'Reading' | 'Rewards' | 'Assignments'
+type Screen = 'StudentHome' | 'Profile' | 'Reading' | 'Rewards' | 'Assignments' | 'Quiz'
 
-interface StudentNavigatorProps {
-  onLogout?: () => void
-}
+interface StudentNavigatorProps { onLogout?: () => void }
 
 export function StudentNavigator({ onLogout }: StudentNavigatorProps) {
   const [screen, setScreen] = useState<Screen>('StudentHome')
@@ -22,21 +21,26 @@ export function StudentNavigator({ onLogout }: StudentNavigatorProps) {
       setSelectedMaterial(params.material)
       setReadingParams(params)
     }
+    if (target === 'Quiz' && params?.material) {
+      setSelectedMaterial(params.material)
+    }
     setScreen(target as Screen)
   }, [])
 
   const goBack = useCallback(() => setScreen('StudentHome'), [])
+  const goBackFromQuiz = useCallback(() => setScreen('Reading'), [])
 
   const titles: Record<Screen, string> = {
-    StudentHome: 'Reading Materials',
-    Profile: 'My Progress',
-    Reading: selectedMaterial?.title ?? 'Reading',
-    Rewards: 'My Rewards',
-    Assignments: 'My Assignments',
+    StudentHome: 'Reading Materials', Profile: 'My Progress',
+    Reading: selectedMaterial?.title ?? 'Reading', Rewards: 'My Rewards',
+    Assignments: 'My Assignments', Quiz: 'Comprehension Quiz',
   }
 
   if (screen === 'Reading' && selectedMaterial) {
     return <ReadingScreen material={selectedMaterial} readingParams={readingParams} activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} onBack={goBack} />
+  }
+  if (screen === 'Quiz' && selectedMaterial) {
+    return <QuizScreen materialId={selectedMaterial.id} materialTitle={selectedMaterial.title} activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} onBack={goBackFromQuiz} />
   }
   if (screen === 'Profile') return <ProfileScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} />
   if (screen === 'Rewards') return <RewardsScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} />
