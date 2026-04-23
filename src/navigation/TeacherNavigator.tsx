@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import { DashboardScreen } from '../screens/teacher/DashboardScreen'
 import { StudentDetailScreen } from '../screens/teacher/StudentDetailScreen'
 import { AddMaterialScreen } from '../screens/teacher/AddMaterialScreen'
+import { AnalyticsScreen } from '../screens/teacher/AnalyticsScreen'
 
-type Screen = 'Dashboard' | 'StudentDetail' | 'AddMaterial'
+type Screen = 'Dashboard' | 'StudentDetail' | 'AddMaterial' | 'Analytics'
 
 interface TeacherNavigatorProps {
   onLogout?: () => void
@@ -20,14 +21,13 @@ export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
     setScreen(target as Screen)
   }
 
-  function goBack() {
-    setScreen('Dashboard')
-  }
+  function goBack() { setScreen('Dashboard') }
 
   const titles: Record<Screen, string> = {
     Dashboard: 'Teacher Dashboard',
     StudentDetail: selectedStudent?.name ?? 'Student Detail',
     AddMaterial: 'Add Reading Material',
+    Analytics: 'Progress Analytics',
   }
 
   if (screen === 'StudentDetail' && selectedStudent) {
@@ -52,6 +52,17 @@ export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
         onNavigate={navigate}
         onLogout={onLogout ?? (() => {})}
         onBack={goBack}
+      />
+    )
+  }
+
+  if (screen === 'Analytics') {
+    return (
+      <AnalyticsScreen
+        activeScreen={screen}
+        title={titles[screen]}
+        onNavigate={navigate}
+        onLogout={onLogout ?? (() => {})}
       />
     )
   }

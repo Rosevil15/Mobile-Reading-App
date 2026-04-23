@@ -203,8 +203,8 @@ const styles = StyleSheet.create({
   passage: { fontSize: 17, lineHeight: 30, color: '#374151' },
   word: { fontSize: 17, lineHeight: 30, color: '#374151' },
   wordHighlighted: {
-    backgroundColor: '#fef08a',
-    color: '#1e3a5f',
+    backgroundColor: '#bfdbfe',
+    color: '#1e40af',
     fontWeight: '700',
     borderRadius: 3,
   },

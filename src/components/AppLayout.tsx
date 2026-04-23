@@ -17,6 +17,7 @@ const STUDENT_ITEMS: NavItem[] = [
 
 const TEACHER_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: '🏠', key: 'Dashboard' },
+  { label: 'Analytics', icon: '📊', key: 'Analytics' },
   { label: 'Add Material', icon: '➕', key: 'AddMaterial' },
 ]
 
