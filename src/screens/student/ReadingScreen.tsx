@@ -6,12 +6,14 @@ import { ProgressRepo } from '../../repositories/progress.repo'
 import { RecordingRepo } from '../../repositories/recording.repo'
 import { AuthService } from '../../services/auth.service'
 import { GamificationService } from '../../services/gamification.service'
+import { supabase } from '../../services/supabase'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 import { AppLayout } from '../../components/AppLayout'
 import type { ReadingMaterial } from '../../types'
 
 interface Props {
   material: ReadingMaterial
+  readingParams?: any
   activeScreen: string
   title: string
   onNavigate: (screen: string, params?: any) => void
@@ -33,7 +35,7 @@ const RATE_MIN = 0.5, RATE_MAX = 2.0, RATE_STEP = 0.25
 
 type Mode = 'reading' | 'practice'
 
-export function ReadingScreen({ material, activeScreen, title, onNavigate, onLogout, onBack }: Props) {
+export function ReadingScreen({ material, readingParams, activeScreen, title, onNavigate, onLogout, onBack }: Props) {
   const [mode, setMode] = useState<Mode>('reading')
   const [ttsRate, setTtsRate] = useState(1.0)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -114,6 +116,14 @@ export function ReadingScreen({ material, activeScreen, title, onNavigate, onLog
       const result = await GamificationService.updateAfterSession(studentId, 0, 0, allRecords.length)
       if (result.newBadges.length > 0) {
         Alert.alert('🏅 Badge Earned!', result.newBadges.map(b => `${b.icon} ${b.label}`).join('\n'))
+      }
+
+      // Mark assignment complete if this was an assignment session
+      if (readingParams?.assignmentStudentId) {
+        await supabase
+          .from('assignment_students')
+          .update({ completed: true, completed_at: new Date().toISOString(), score: 0 })
+          .eq('id', readingParams.assignmentStudentId)
       }
 
       // If there are marked words, offer practice mode

@@ -43,10 +43,7 @@ export function HomeScreen({ activeScreen, title, onNavigate, onLogout }: Props)
           .select('id, title, content, difficulty_level')
           .order('created_at', { ascending: true })
         data = (rows ?? []).map((r: any) => ({
-          id: r.id,
-          title: r.title,
-          content: r.content,
-          difficultyLevel: r.difficulty_level,
+          id: r.id, title: r.title, content: r.content, difficultyLevel: r.difficulty_level,
         }))
       } else {
         data = await repo.getAll()
