@@ -3,8 +3,9 @@ import { DashboardScreen } from '../screens/teacher/DashboardScreen'
 import { StudentDetailScreen } from '../screens/teacher/StudentDetailScreen'
 import { AddMaterialScreen } from '../screens/teacher/AddMaterialScreen'
 import { AnalyticsScreen } from '../screens/teacher/AnalyticsScreen'
+import { LeaderboardScreen } from '../screens/teacher/LeaderboardScreen'
 
-type Screen = 'Dashboard' | 'StudentDetail' | 'AddMaterial' | 'Analytics'
+type Screen = 'Dashboard' | 'StudentDetail' | 'AddMaterial' | 'Analytics' | 'Leaderboard'
 
 interface TeacherNavigatorProps {
   onLogout?: () => void
@@ -15,9 +16,7 @@ export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
   const [selectedStudent, setSelectedStudent] = useState<{ id: string; name: string } | null>(null)
 
   function navigate(target: string, params?: any) {
-    if (target === 'StudentDetail' && params) {
-      setSelectedStudent({ id: params.studentId, name: params.studentName })
-    }
+    if (target === 'StudentDetail' && params) setSelectedStudent({ id: params.studentId, name: params.studentName })
     setScreen(target as Screen)
   }
 
@@ -28,51 +27,20 @@ export function TeacherNavigator({ onLogout }: TeacherNavigatorProps) {
     StudentDetail: selectedStudent?.name ?? 'Student Detail',
     AddMaterial: 'Add Reading Material',
     Analytics: 'Progress Analytics',
+    Leaderboard: 'Leaderboard',
   }
 
   if (screen === 'StudentDetail' && selectedStudent) {
-    return (
-      <StudentDetailScreen
-        studentId={selectedStudent.id}
-        studentName={selectedStudent.name}
-        activeScreen={screen}
-        title={titles[screen]}
-        onNavigate={navigate}
-        onLogout={onLogout ?? (() => {})}
-        onBack={goBack}
-      />
-    )
+    return <StudentDetailScreen studentId={selectedStudent.id} studentName={selectedStudent.name} activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} onBack={goBack} />
   }
-
   if (screen === 'AddMaterial') {
-    return (
-      <AddMaterialScreen
-        activeScreen={screen}
-        title={titles[screen]}
-        onNavigate={navigate}
-        onLogout={onLogout ?? (() => {})}
-        onBack={goBack}
-      />
-    )
+    return <AddMaterialScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} onBack={goBack} />
   }
-
   if (screen === 'Analytics') {
-    return (
-      <AnalyticsScreen
-        activeScreen={screen}
-        title={titles[screen]}
-        onNavigate={navigate}
-        onLogout={onLogout ?? (() => {})}
-      />
-    )
+    return <AnalyticsScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} />
   }
-
-  return (
-    <DashboardScreen
-      activeScreen={screen}
-      title={titles[screen]}
-      onNavigate={navigate}
-      onLogout={onLogout ?? (() => {})}
-    />
-  )
+  if (screen === 'Leaderboard') {
+    return <LeaderboardScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} />
+  }
+  return <DashboardScreen activeScreen={screen} title={titles[screen]} onNavigate={navigate} onLogout={onLogout ?? (() => {})} />
 }

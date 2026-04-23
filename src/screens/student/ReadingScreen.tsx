@@ -5,6 +5,7 @@ import { recorderService } from '../../services/recorder.service'
 import { ProgressRepo } from '../../repositories/progress.repo'
 import { RecordingRepo } from '../../repositories/recording.repo'
 import { AuthService } from '../../services/auth.service'
+import { GamificationService } from '../../services/gamification.service'
 import { ConnectivityIndicator } from '../../components/ConnectivityIndicator'
 import { AppLayout } from '../../components/AppLayout'
 import type { ReadingMaterial } from '../../types'
@@ -118,6 +119,14 @@ export function ReadingScreen({ material, activeScreen, title, onNavigate, onLog
       const progressId = generateId()
       await progressRepo.save({ id: progressId, studentId, materialId: material.id, materialTitle: material.title, score: 0, fluencyRating: 'pending', wordsPerMinute: 0, sessionDate: new Date(), synced: false })
       if (finalUri) await recordingRepo.save({ id: generateId(), progressRecordId: progressId, localUri: finalUri, synced: false })
+
+      // Update gamification
+      const allRecords = await progressRepo.getByStudent(studentId)
+      const result = await GamificationService.updateAfterSession(studentId, 0, 0, allRecords.length)
+      if (result.newBadges.length > 0) {
+        Alert.alert('🏅 Badge Earned!', result.newBadges.map(b => `${b.icon} ${b.label}`).join('\n'))
+      }
+
       onBack()
     } catch { Alert.alert('Error', 'Failed to save session.') } finally { setIsSaving(false) }
   }
