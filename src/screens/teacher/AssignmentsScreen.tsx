@@ -122,14 +122,11 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
 
     setSaving(true)
     try {
-      // Re-fetch session in case teacherId state is stale
-      const session = await AuthService.getSession()
-      const tid = session?.userId ?? teacherId
-      if (!tid) { Alert.alert('Error', 'Not authenticated.'); setSaving(false); return }
+      if (!teacherId) { Alert.alert('Error', 'Not authenticated. Please log out and log back in.'); setSaving(false); return }
 
       const { data: assignment, error } = await supabase
         .from('assignments')
-        .insert({ teacher_id: tid, material_id: selectedMaterial, title: assignTitle.trim(), deadline: new Date(deadline).toISOString(), required_score: score })
+        .insert({ teacher_id: teacherId, material_id: selectedMaterial, title: assignTitle.trim(), deadline: new Date(deadline).toISOString(), required_score: score })
         .select('id').single()
       if (error) { Alert.alert('Supabase Error', error.message); setSaving(false); return }
       const { error: err2 } = await supabase.from('assignment_students').insert(

@@ -161,34 +161,8 @@ export const AuthService = {
       return null
     }
 
-    // Attempt to validate / refresh the token via Supabase
-    const { data, error } = await supabase.auth.setSession({
-      access_token: session.accessToken,
-      refresh_token: session.refreshToken,
-    })
-
-    if (error || !data.session) {
-      // Token is invalid or expired and refresh failed — clear storage
-      await AsyncStorage.removeItem(SESSION_KEY)
-      return null
-    }
-
-    // Update stored tokens if they were refreshed
-    const refreshed = toSession(
-      session.userId,
-      session.email,
-      session.role,
-      data.session.access_token,
-      data.session.refresh_token,
-    )
-
-    if (
-      refreshed.accessToken !== session.accessToken ||
-      refreshed.refreshToken !== session.refreshToken
-    ) {
-      await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(refreshed))
-    }
-
-    return refreshed
+    // Return the stored session directly without re-validating
+    // Token refresh happens lazily when API calls fail
+    return session
   },
 }
