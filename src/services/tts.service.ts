@@ -9,6 +9,7 @@ export class TTSService {
   private static readonly MAX_RATE = 2.0
   private onWordCallback: ((wordIndex: number) => void) | null = null
   private onEndCallback: (() => void) | null = null
+  private boundaryFired = false
 
   setOnWord(cb: ((wordIndex: number) => void) | null) {
     this.onWordCallback = cb
@@ -28,15 +29,25 @@ export class TTSService {
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.rate = clampedRate
 
-      // Use boundary event for accurate word sync
+      // Pre-build word start positions for accurate charIndex → word index lookup
+      const wordPositions: number[] = []
+      const wordRegex = /\S+/g
+      let m: RegExpExecArray | null
+      while ((m = wordRegex.exec(text)) !== null) {
+        wordPositions.push(m.index)
+      }
+
       utterance.onboundary = (event) => {
-        if (event.name === 'word' && this.onWordCallback) {
-          // Find which word index this character offset corresponds to
-          const charIndex = event.charIndex
-          const textBefore = text.substring(0, charIndex)
-          const wordIndex = textBefore.split(/\s+/).filter(Boolean).length
-          this.onWordCallback(wordIndex)
+        if (event.name !== 'word' || !this.onWordCallback) return
+        this.boundaryFired = true
+        const ci = event.charIndex
+        // Find the word whose start position is closest to charIndex
+        let idx = 0
+        for (let i = 0; i < wordPositions.length; i++) {
+          if (wordPositions[i] <= ci) idx = i
+          else break
         }
+        this.onWordCallback(idx)
       }
 
       utterance.onend = () => {
@@ -47,7 +58,20 @@ export class TTSService {
         this.onEndCallback?.()
       }
 
+      this.boundaryFired = false
       window.speechSynthesis.speak(utterance)
+
+      // Fallback timer if onboundary doesn't fire (Safari)
+      setTimeout(() => {
+        if (!this.boundaryFired && this.onWordCallback) {
+          const msPerWord = (1000 / clampedRate) * 0.4
+          let idx = 0
+          const timer = setInterval(() => {
+            if (idx >= wordPositions.length) { clearInterval(timer); return }
+            this.onWordCallback?.(idx++)
+          }, msPerWord)
+        }
+      }, 300)
       return
     }
 
