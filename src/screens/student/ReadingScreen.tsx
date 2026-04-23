@@ -135,14 +135,7 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
         setPracticeIndex(0)
         setMode('practice')
       } else {
-        Alert.alert(
-          'Session Complete! 🎉',
-          'Would you like to take a comprehension quiz?',
-          [
-            { text: 'Skip', onPress: onBack },
-            { text: '📝 Take Quiz', onPress: () => onNavigate('Quiz', { material }) },
-          ]
-        )
+        onBack()
       }
     } catch { Alert.alert('Error', 'Failed to save session.') } finally { setIsSaving(false) }
   }
@@ -201,13 +194,6 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
 
           <TouchableOpacity style={styles.doneBtn} onPress={() => { ttsService.stop(); onBack() }}>
             <Text style={styles.doneBtnText}>✓ Done Practicing</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.doneBtn, { backgroundColor: '#2563eb', marginTop: 10 }]}
-            onPress={() => { ttsService.stop(); onNavigate('Quiz', { material }) }}
-          >
-            <Text style={styles.doneBtnText}>📝 Take Comprehension Quiz</Text>
           </TouchableOpacity>
         </ScrollView>
       </AppLayout>

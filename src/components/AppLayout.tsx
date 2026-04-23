@@ -12,15 +12,12 @@ interface NavItem { label: string; icon: string; key: string }
 
 const STUDENT_ITEMS: NavItem[] = [
   { label: 'Reading Materials', icon: '📚', key: 'StudentHome' },
-  { label: 'Assignments', icon: '📋', key: 'Assignments' },
   { label: 'My Progress', icon: '📊', key: 'Profile' },
   { label: 'My Rewards', icon: '🏅', key: 'Rewards' },
 ]
 
 const TEACHER_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: '🏠', key: 'Dashboard' },
-  { label: 'Assignments', icon: '📋', key: 'Assignments' },
-  { label: 'Quiz Builder', icon: '📝', key: 'QuizBuilder' },
   { label: 'Analytics', icon: '📊', key: 'Analytics' },
   { label: 'Leaderboard', icon: '🏆', key: 'Leaderboard' },
   { label: 'Add Material', icon: '➕', key: 'AddMaterial' },
