@@ -37,20 +37,22 @@ export function QuizScreen({ materialId, materialTitle, activeScreen, title, onN
 
   useEffect(() => {
     async function load() {
-      const { data: quiz } = await supabase
+      // Step 1: find quiz for this material
+      const { data: quizData } = await supabase
         .from('quizzes')
         .select('id')
         .eq('material_id', materialId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
 
+      const quiz = quizData?.[0]
       if (!quiz) { setNoQuiz(true); setLoading(false); return }
       setQuizId(quiz.id)
 
+      // Step 2: get questions
       const { data: qs } = await supabase
         .from('quiz_questions')
-        .select('*')
+        .select('id, question_text, question_type, options, correct_answer, order_index')
         .eq('quiz_id', quiz.id)
         .order('order_index')
 

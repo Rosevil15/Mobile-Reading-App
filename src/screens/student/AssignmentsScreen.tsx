@@ -36,33 +36,51 @@ export function StudentAssignmentsScreen({ activeScreen, title, onNavigate, onLo
       const session = await AuthService.getSession()
       if (!session) return
 
-      const { data } = await supabase
+      // Step 1: get student's assignment rows
+      const { data: asData, error: asErr } = await supabase
         .from('assignment_students')
-        .select(`
-          id,
-          completed,
-          score,
-          assignments (
-            id, title, deadline, required_score,
-            reading_materials ( id, title, content, difficulty_level )
-          )
-        `)
+        .select('id, completed, score, assignment_id')
         .eq('student_id', session.userId)
-        .order('created_at', { ascending: false })
 
-      const mapped: Assignment[] = (data ?? []).map((row: any) => ({
-        id: row.id,
-        assignmentId: row.assignments?.id,
-        title: row.assignments?.title ?? '—',
-        materialId: row.assignments?.reading_materials?.id ?? '',
-        materialTitle: row.assignments?.reading_materials?.title ?? '—',
-        materialContent: row.assignments?.reading_materials?.content ?? '',
-        materialDifficulty: row.assignments?.reading_materials?.difficulty_level ?? 'easy',
-        deadline: row.assignments?.deadline ?? '',
-        requiredScore: row.assignments?.required_score ?? 0,
-        completed: row.completed,
-        score: row.score,
-      }))
+      if (asErr || !asData?.length) { setAssignments([]); setLoading(false); return }
+
+      // Step 2: get assignment details
+      const assignmentIds = asData.map((a: any) => a.assignment_id)
+      const { data: aData } = await supabase
+        .from('assignments')
+        .select('id, title, deadline, required_score, material_id')
+        .in('id', assignmentIds)
+
+      // Step 3: get material details
+      const materialIds = [...new Set((aData ?? []).map((a: any) => a.material_id))]
+      const { data: mData } = await supabase
+        .from('reading_materials')
+        .select('id, title, content, difficulty_level')
+        .in('id', materialIds)
+
+      const aMap: Record<string, any> = {}
+      ;(aData ?? []).forEach((a: any) => { aMap[a.id] = a })
+      const mMap: Record<string, any> = {}
+      ;(mData ?? []).forEach((m: any) => { mMap[m.id] = m })
+
+      const mapped: Assignment[] = asData.map((row: any) => {
+        const a = aMap[row.assignment_id] ?? {}
+        const m = mMap[a.material_id] ?? {}
+        return {
+          id: row.id,
+          assignmentId: a.id ?? '',
+          title: a.title ?? '—',
+          materialId: m.id ?? '',
+          materialTitle: m.title ?? '—',
+          materialContent: m.content ?? '',
+          materialDifficulty: m.difficulty_level ?? 'easy',
+          deadline: a.deadline ?? '',
+          requiredScore: a.required_score ?? 0,
+          completed: row.completed,
+          score: row.score,
+        }
+      }).sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+
       setAssignments(mapped)
     } catch { } finally { setLoading(false) }
   }, [])
