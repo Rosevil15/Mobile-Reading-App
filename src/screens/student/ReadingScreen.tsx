@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'
 import { ttsService } from '../../services/tts.service'
 import { recorderService } from '../../services/recorder.service'
@@ -29,8 +29,6 @@ function generateId(): string {
   })
 }
 
-// Average ms per word at 1x speed (roughly 150 words/min)
-const MS_PER_WORD_BASE = 400
 const RATE_MIN = 0.5, RATE_MAX = 2.0, RATE_STEP = 0.25
 
 export function ReadingScreen({ material, activeScreen, title, onNavigate, onLogout, onBack }: Props) {
@@ -42,52 +40,36 @@ export function ReadingScreen({ material, activeScreen, title, onNavigate, onLog
   const [isSaving, setIsSaving] = useState(false)
   const permissionGrantedRef = useRef(false)
   const recordingUriRef = useRef<string | null>(null)
-  const wordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const wordIndexRef = useRef(0)
 
   const words = material.content.split(/\s+/)
 
   const difficultyColor: Record<string, string> = { easy: '#16a34a', medium: '#d97706', hard: '#dc2626' }
 
-  const stopWordHighlight = useCallback(() => {
-    if (wordTimerRef.current) {
-      clearInterval(wordTimerRef.current)
-      wordTimerRef.current = null
+  // Setup TTS word callbacks
+  useEffect(() => {
+    ttsService.setOnWord((wordIndex) => {
+      setCurrentWordIndex(wordIndex)
+    })
+    ttsService.setOnEnd(() => {
+      setCurrentWordIndex(-1)
+      setIsSpeaking(false)
+    })
+    return () => {
+      ttsService.setOnWord(null)
+      ttsService.setOnEnd(null)
     }
-    setCurrentWordIndex(-1)
-    wordIndexRef.current = 0
   }, [])
 
-  const startWordHighlight = useCallback((rate: number) => {
-    stopWordHighlight()
-    const msPerWord = MS_PER_WORD_BASE / rate
-    wordIndexRef.current = 0
-    wordTimerRef.current = setInterval(() => {
-      if (wordIndexRef.current >= words.length) {
-        stopWordHighlight()
-        setIsSpeaking(false)
-        return
-      }
-      setCurrentWordIndex(wordIndexRef.current)
-      wordIndexRef.current++
-    }, msPerWord)
-  }, [words.length, stopWordHighlight])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => { stopWordHighlight() }
-  }, [stopWordHighlight])
-
   function handlePlay() {
+    setCurrentWordIndex(-1)
     ttsService.speak(material.content, ttsRate)
     setIsSpeaking(true)
-    startWordHighlight(ttsRate)
   }
 
   function handleStop() {
     ttsService.stop()
     setIsSpeaking(false)
-    stopWordHighlight()
+    setCurrentWordIndex(-1)
   }
 
   function handleRateDown() { setTtsRate((r) => Math.max(RATE_MIN, parseFloat((r - RATE_STEP).toFixed(2)))) }
