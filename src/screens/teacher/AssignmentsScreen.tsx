@@ -94,18 +94,24 @@ export function AssignmentsScreen({ activeScreen, title, onNavigate, onLogout }:
 
     setSaving(true)
     try {
+      // Re-fetch session in case teacherId state is stale
+      const session = await AuthService.getSession()
+      const tid = session?.userId ?? teacherId
+      if (!tid) { Alert.alert('Error', 'Not authenticated.'); setSaving(false); return }
+
       const { data: assignment, error } = await supabase
         .from('assignments')
-        .insert({ teacher_id: teacherId, material_id: selectedMaterial, title: assignTitle.trim(), deadline: new Date(deadline).toISOString(), required_score: score })
+        .insert({ teacher_id: tid, material_id: selectedMaterial, title: assignTitle.trim(), deadline: new Date(deadline).toISOString(), required_score: score })
         .select('id').single()
-      if (error) throw error
-      await supabase.from('assignment_students').insert(
+      if (error) { Alert.alert('Supabase Error', error.message); setSaving(false); return }
+      const { error: err2 } = await supabase.from('assignment_students').insert(
         Array.from(selectedStudents).map(sid => ({ assignment_id: assignment.id, student_id: sid }))
       )
+      if (err2) { Alert.alert('Student Error', err2.message); setSaving(false); return }
       setView('list')
       fetchAssignments()
     } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Failed to create assignment.')
+      Alert.alert('Error', err.message ?? String(err))
     } finally { setSaving(false) }
   }
 
