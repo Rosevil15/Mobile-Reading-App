@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'
 import { ttsService } from '../../services/tts.service'
 import { recorderService } from '../../services/recorder.service'
@@ -28,21 +28,67 @@ function generateId(): string {
   })
 }
 
+// Average ms per word at 1x speed (roughly 150 words/min)
+const MS_PER_WORD_BASE = 400
 const RATE_MIN = 0.5, RATE_MAX = 2.0, RATE_STEP = 0.25
 
 export function ReadingScreen({ material, activeScreen, title, onNavigate, onLogout, onBack }: Props) {
   const [ttsRate, setTtsRate] = useState(1.0)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [currentWordIndex, setCurrentWordIndex] = useState(-1)
   const [isRecording, setIsRecording] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const permissionGrantedRef = useRef(false)
   const recordingUriRef = useRef<string | null>(null)
+  const wordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const wordIndexRef = useRef(0)
+
+  const words = material.content.split(/\s+/)
 
   const difficultyColor: Record<string, string> = { easy: '#16a34a', medium: '#d97706', hard: '#dc2626' }
 
-  function handlePlay() { ttsService.speak(material.content, ttsRate); setIsSpeaking(true) }
-  function handleStop() { ttsService.stop(); setIsSpeaking(false) }
+  const stopWordHighlight = useCallback(() => {
+    if (wordTimerRef.current) {
+      clearInterval(wordTimerRef.current)
+      wordTimerRef.current = null
+    }
+    setCurrentWordIndex(-1)
+    wordIndexRef.current = 0
+  }, [])
+
+  const startWordHighlight = useCallback((rate: number) => {
+    stopWordHighlight()
+    const msPerWord = MS_PER_WORD_BASE / rate
+    wordIndexRef.current = 0
+    wordTimerRef.current = setInterval(() => {
+      if (wordIndexRef.current >= words.length) {
+        stopWordHighlight()
+        setIsSpeaking(false)
+        return
+      }
+      setCurrentWordIndex(wordIndexRef.current)
+      wordIndexRef.current++
+    }, msPerWord)
+  }, [words.length, stopWordHighlight])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { stopWordHighlight() }
+  }, [stopWordHighlight])
+
+  function handlePlay() {
+    ttsService.speak(material.content, ttsRate)
+    setIsSpeaking(true)
+    startWordHighlight(ttsRate)
+  }
+
+  function handleStop() {
+    ttsService.stop()
+    setIsSpeaking(false)
+    stopWordHighlight()
+  }
+
   function handleRateDown() { setTtsRate((r) => Math.max(RATE_MIN, parseFloat((r - RATE_STEP).toFixed(2)))) }
   function handleRateUp() { setTtsRate((r) => Math.min(RATE_MAX, parseFloat((r + RATE_STEP).toFixed(2)))) }
 
@@ -63,7 +109,7 @@ export function ReadingScreen({ material, activeScreen, title, onNavigate, onLog
   async function handleFinish() {
     if (isSaving) return
     setIsSaving(true)
-    if (isSpeaking) { ttsService.stop(); setIsSpeaking(false) }
+    if (isSpeaking) { ttsService.stop(); setIsSpeaking(false); stopWordHighlight() }
     let finalUri = recordingUriRef.current
     if (isRecording) { try { finalUri = await recorderService.stopRecording() } catch {} setIsRecording(false) }
     try {
@@ -87,7 +133,23 @@ export function ReadingScreen({ material, activeScreen, title, onNavigate, onLog
         <Text style={[styles.difficulty, { color: difficultyColor[material.difficultyLevel] ?? '#555' }]}>
           {material.difficultyLevel.charAt(0).toUpperCase() + material.difficultyLevel.slice(1)}
         </Text>
-        <Text style={styles.content}>{material.content}</Text>
+
+        {/* Word-highlighted passage */}
+        <View style={styles.passageContainer}>
+          <Text style={styles.passage}>
+            {words.map((word, index) => (
+              <Text
+                key={index}
+                style={[
+                  styles.word,
+                  index === currentWordIndex && styles.wordHighlighted,
+                ]}
+              >
+                {word}{' '}
+              </Text>
+            ))}
+          </Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Text-to-Speech</Text>
@@ -133,7 +195,19 @@ const styles = StyleSheet.create({
   backText: { color: '#2563eb', fontSize: 14, fontWeight: '600' },
   title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 6 },
   difficulty: { fontSize: 14, fontWeight: '600', marginBottom: 16 },
-  content: { fontSize: 16, lineHeight: 26, color: '#374151', marginBottom: 24 },
+  passageContainer: {
+    backgroundColor: '#fff', borderRadius: 10, padding: 16,
+    marginBottom: 20, elevation: 1,
+    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
+  },
+  passage: { fontSize: 17, lineHeight: 30, color: '#374151' },
+  word: { fontSize: 17, lineHeight: 30, color: '#374151' },
+  wordHighlighted: {
+    backgroundColor: '#fef08a',
+    color: '#1e3a5f',
+    fontWeight: '700',
+    borderRadius: 3,
+  },
   section: { backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 16, elevation: 2 },
   sectionLabel: { fontSize: 12, fontWeight: '600', color: '#6b7280', marginBottom: 12, textTransform: 'uppercase' },
   row: { flexDirection: 'row', gap: 10 },
