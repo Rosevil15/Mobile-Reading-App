@@ -33,7 +33,30 @@ export function ProfileScreen({ activeScreen, title, onNavigate, onLogout }: Pro
       if (!session) return
       setEmail(session.email)
       setUserId(session.userId)
-      const data = await repo.getByStudent(session.userId)
+
+      let data: ProgressRecord[] = []
+      if (Platform.OS === 'web') {
+        // On web, fetch from Supabase
+        const { data: rows } = await supabase
+          .from('progress_records')
+          .select('id, student_id, material_id, material_title, score, fluency_rating, words_per_minute, session_date')
+          .eq('student_id', session.userId)
+          .order('session_date', { ascending: false })
+        data = (rows ?? []).map((r: any) => ({
+          id: r.id,
+          studentId: r.student_id,
+          materialId: r.material_id,
+          materialTitle: r.material_title,
+          score: r.score,
+          fluencyRating: r.fluency_rating,
+          wordsPerMinute: r.words_per_minute,
+          sessionDate: new Date(r.session_date),
+          synced: true,
+        }))
+      } else {
+        data = await repo.getByStudent(session.userId)
+      }
+
       if (!cancelled) { setRecords(data); setLoading(false) }
     }
     load()

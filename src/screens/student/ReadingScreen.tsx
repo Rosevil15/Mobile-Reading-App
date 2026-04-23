@@ -112,6 +112,20 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
       const progressId = generateId()
       await progressRepo.save({ id: progressId, studentId, materialId: material.id, materialTitle: material.title, score: 0, fluencyRating: 'pending', wordsPerMinute: 0, sessionDate: new Date(), synced: false })
       if (finalUri) await recordingRepo.save({ id: generateId(), progressRecordId: progressId, localUri: finalUri, synced: false })
+
+      // Also save to Supabase directly on web
+      if (Platform.OS === 'web') {
+        await supabase.from('progress_records').insert({
+          id: progressId,
+          student_id: studentId,
+          material_id: material.id,
+          material_title: material.title,
+          score: 0,
+          fluency_rating: 'pending',
+          words_per_minute: 0,
+          session_date: new Date().toISOString(),
+        })
+      }
       const allRecords = await progressRepo.getByStudent(studentId)
       const result = await GamificationService.updateAfterSession(studentId, 0, 0, allRecords.length)
       if (result.newBadges.length > 0) {
