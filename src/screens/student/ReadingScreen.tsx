@@ -91,7 +91,6 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
       try { const uri = await recorderService.stopRecording(); recordingUriRef.current = uri } catch {}
       setIsRecording(false); return
     }
-    if (Platform.OS === 'web') { Alert.alert('Not supported', 'Recording is not available on web.'); return }
     if (!permissionGrantedRef.current) {
       const granted = await recorderService.requestPermission()
       if (!granted) { setPermissionDenied(true); return }
@@ -114,8 +113,13 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
       if (finalUri) await recordingRepo.save({ id: generateId(), progressRecordId: progressId, localUri: finalUri, synced: false })
 
       // Also save to Supabase directly on web
-      if (Platform.OS === 'web') {
-        await supabase.from('progress_records').insert({
+      if (Platform.OS === 'web' && session) {
+        // Set auth session so RLS works
+        await supabase.auth.setSession({
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+        })
+        const { error: pgErr } = await supabase.from('progress_records').insert({
           id: progressId,
           student_id: studentId,
           material_id: material.id,
@@ -125,6 +129,7 @@ export function ReadingScreen({ material, readingParams, activeScreen, title, on
           words_per_minute: 0,
           session_date: new Date().toISOString(),
         })
+        if (pgErr) console.warn('Progress save error:', pgErr.message)
       }
       const allRecords = await progressRepo.getByStudent(studentId)
       const result = await GamificationService.updateAfterSession(studentId, 0, 0, allRecords.length)

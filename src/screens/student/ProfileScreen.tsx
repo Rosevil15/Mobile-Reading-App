@@ -36,7 +36,11 @@ export function ProfileScreen({ activeScreen, title, onNavigate, onLogout }: Pro
 
       let data: ProgressRecord[] = []
       if (Platform.OS === 'web') {
-        // On web, fetch from Supabase
+        // Set auth session so RLS works
+        await supabase.auth.setSession({
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+        })
         const { data: rows } = await supabase
           .from('progress_records')
           .select('id, student_id, material_id, material_title, score, fluency_rating, words_per_minute, session_date')
